@@ -64,7 +64,7 @@ final class SettingsWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "KeyHarbor"
+        window.title = "快捷虾"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isOpaque = false

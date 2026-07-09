@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-APP_NAME="KeyHarbor"
+APP_NAME="快捷虾"
 SOURCE_APP="$ROOT_DIR/dist/$APP_NAME.app"
 TARGET_APP="/Applications/$APP_NAME.app"
 
@@ -12,6 +12,7 @@ if pgrep -x KeyHarbor >/dev/null 2>&1; then
     pkill -x KeyHarbor || true
 fi
 
+rm -rf "/Applications/KeyHarbor.app"
 rm -rf "$TARGET_APP"
 cp -R "$SOURCE_APP" "$TARGET_APP"
 
