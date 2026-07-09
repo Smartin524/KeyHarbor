@@ -12,14 +12,6 @@ if pgrep -x KeyHarbor >/dev/null 2>&1; then
     pkill -x KeyHarbor || true
 fi
 
-if pgrep -x QuickXia >/dev/null 2>&1; then
-    pkill -x QuickXia || true
-fi
-
-if [[ -d "/Applications/快捷虾.app" ]]; then
-    rm -rf "/Applications/快捷虾.app"
-fi
-
 rm -rf "$TARGET_APP"
 cp -R "$SOURCE_APP" "$TARGET_APP"
 
