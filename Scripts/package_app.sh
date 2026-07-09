@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-APP_NAME="快捷虾"
-EXECUTABLE_NAME="QuickXia"
+APP_NAME="KeyHarbor"
+EXECUTABLE_NAME="KeyHarbor"
 APP_DIR="$ROOT_DIR/dist/$APP_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
@@ -28,17 +28,17 @@ cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
     <key>CFBundleDevelopmentRegion</key>
     <string>zh_CN</string>
     <key>CFBundleDisplayName</key>
-    <string>快捷虾</string>
+    <string>KeyHarbor</string>
     <key>CFBundleExecutable</key>
-    <string>QuickXia</string>
+    <string>KeyHarbor</string>
     <key>CFBundleIdentifier</key>
-    <string>com.smartin.quickxia</string>
+    <string>com.smartin.keyharbor</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>快捷虾</string>
+    <string>KeyHarbor</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>

@@ -13,6 +13,8 @@ final class ConfigStore {
     }
 
     func load() -> AppConfig {
+        migrateLegacyConfigIfNeeded()
+
         guard fileManager.fileExists(atPath: configURL.path) else {
             return .defaults()
         }
@@ -33,10 +35,36 @@ final class ConfigStore {
     }
 
     private var configURL: URL {
-        let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
-        let directory = base ?? fileManager.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
-        return directory
+        applicationSupportDirectory
+            .appendingPathComponent("KeyHarbor", isDirectory: true)
+            .appendingPathComponent("config.json")
+    }
+
+    private var legacyConfigURL: URL {
+        applicationSupportDirectory
             .appendingPathComponent("QuickXia", isDirectory: true)
             .appendingPathComponent("config.json")
+    }
+
+    private var applicationSupportDirectory: URL {
+        let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        return base ?? fileManager.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support")
+    }
+
+    private func migrateLegacyConfigIfNeeded() {
+        guard !fileManager.fileExists(atPath: configURL.path),
+              fileManager.fileExists(atPath: legacyConfigURL.path) else {
+            return
+        }
+
+        do {
+            try fileManager.createDirectory(
+                at: configURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try fileManager.copyItem(at: legacyConfigURL, to: configURL)
+        } catch {
+            NSLog("KeyHarbor failed to migrate legacy config: %@", error.localizedDescription)
+        }
     }
 }

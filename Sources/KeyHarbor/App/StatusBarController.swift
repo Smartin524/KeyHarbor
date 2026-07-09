@@ -20,14 +20,14 @@ final class StatusBarController {
 
     private func configureButton() {
         if let button = statusItem.button {
-            button.toolTip = "快捷虾"
-            button.title = "快捷虾"
-            if let image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "快捷虾") {
+            button.toolTip = "KeyHarbor"
+            button.title = "KeyHarbor"
+            if let image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "KeyHarbor") {
                 image.isTemplate = true
                 button.image = image
                 button.imagePosition = .imageLeading
             } else {
-                button.title = "快捷虾"
+                button.title = "KeyHarbor"
             }
         }
     }
@@ -50,7 +50,7 @@ final class StatusBarController {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: "退出快捷虾",
+            title: "退出 KeyHarbor",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         )

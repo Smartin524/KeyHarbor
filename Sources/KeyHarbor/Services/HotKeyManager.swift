@@ -24,7 +24,7 @@ final class HotKeyManager {
     private var registeredHotKeys: [UInt32: RegisteredHotKey] = [:]
     private var eventHandler: EventHandlerRef?
     private var nextHotKeyID: UInt32 = 1
-    private let signature = HotKeyManager.fourCharacterCode("QXIA")
+    private let signature = HotKeyManager.fourCharacterCode("KHBR")
     private let handler: Handler
     private var panelChordMonitor: ModifierChordMonitor?
 
@@ -106,7 +106,7 @@ final class HotKeyManager {
         )
 
         guard status == noErr, let hotKeyReference else {
-            NSLog("QuickXia failed to register hotkey action=%@ keyCode=%u modifiers=%u status=%d", String(describing: action), keyCode, modifiers, status)
+            NSLog("KeyHarbor failed to register hotkey action=%@ keyCode=%u modifiers=%u status=%d", String(describing: action), keyCode, modifiers, status)
             return
         }
 

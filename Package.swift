@@ -2,17 +2,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "QuickXia",
+    name: "KeyHarbor",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "QuickXia", targets: ["QuickXia"])
+        .executable(name: "KeyHarbor", targets: ["KeyHarbor"])
     ],
     targets: [
         .executableTarget(
-            name: "QuickXia",
-            path: "Sources/QuickXia"
+            name: "KeyHarbor",
+            path: "Sources/KeyHarbor"
         )
     ]
 )

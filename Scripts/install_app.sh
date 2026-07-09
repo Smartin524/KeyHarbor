@@ -2,14 +2,22 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-APP_NAME="快捷虾"
+APP_NAME="KeyHarbor"
 SOURCE_APP="$ROOT_DIR/dist/$APP_NAME.app"
 TARGET_APP="/Applications/$APP_NAME.app"
 
 bash "$ROOT_DIR/Scripts/package_app.sh" >/dev/null
 
+if pgrep -x KeyHarbor >/dev/null 2>&1; then
+    pkill -x KeyHarbor || true
+fi
+
 if pgrep -x QuickXia >/dev/null 2>&1; then
     pkill -x QuickXia || true
+fi
+
+if [[ -d "/Applications/快捷虾.app" ]]; then
+    rm -rf "/Applications/快捷虾.app"
 fi
 
 rm -rf "$TARGET_APP"
