@@ -2,48 +2,98 @@ import AppKit
 import ApplicationServices
 
 final class ApplicationSwitcher {
-    private let focusRetryDelays: [TimeInterval] = [0.08, 0.24, 0.50]
+    private let activateRetryDelays: [TimeInterval] = [0.15, 0.45, 0.90, 1.50]
+    private let focusRetryDelays: [TimeInterval] = [0.20, 0.55, 1.00, 1.70]
 
     func openOrActivate(_ binding: AppBinding) {
-        if let runningApp = NSRunningApplication
-            .runningApplications(withBundleIdentifier: binding.bundleIdentifier)
-            .first {
-            activate(runningApp)
-            return
-        }
-
         let url = URL(fileURLWithPath: binding.appPath)
         guard FileManager.default.fileExists(atPath: url.path) else {
             NSSound.beep()
             return
         }
 
-        let configuration = NSWorkspace.OpenConfiguration()
-        configuration.activates = true
-        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { [weak self] runningApp, error in
-            if error != nil {
-                NSSound.beep()
-                return
-            }
+        if let runningApp = runningApplication(bundleIdentifier: binding.bundleIdentifier),
+           runningApp.isActive {
+            closeOrHide(runningApp)
+            return
+        }
 
-            if let runningApp {
-                self?.activate(runningApp)
-            }
+        guard openApplication(at: url) else {
+            NSSound.beep()
+            return
+        }
+
+        if let runningApp = runningApplication(bundleIdentifier: binding.bundleIdentifier) {
+            activate(runningApp)
+        } else {
+            retryActivate(bundleIdentifier: binding.bundleIdentifier)
         }
     }
 
     func activate(_ runningApp: NSRunningApplication) {
         runningApp.unhide()
         runningApp.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        retryFocusFrontWindow(of: runningApp)
+    }
 
-        guard AccessibilityPermission.isTrusted(promptIfNeeded: true) else { return }
+    private func openApplication(at url: URL) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = [url.path]
+
+        do {
+            try process.run()
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    private func retryActivate(bundleIdentifier: String) {
+        for delay in activateRetryDelays {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self,
+                      let runningApp = self.runningApplication(bundleIdentifier: bundleIdentifier) else {
+                    return
+                }
+
+                self.activate(runningApp)
+            }
+        }
+    }
+
+    private func retryFocusFrontWindow(of runningApp: NSRunningApplication) {
+        guard AccessibilityPermission.isTrusted(promptIfNeeded: true) else {
+            return
+        }
 
         for delay in focusRetryDelays {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self, weak runningApp] in
-                guard let self, let runningApp, !runningApp.isTerminated else { return }
+                guard let self, let runningApp, !runningApp.isTerminated else {
+                    return
+                }
+
                 self.focusFrontWindow(of: runningApp)
             }
         }
+    }
+
+    private func closeOrHide(_ runningApp: NSRunningApplication) {
+        guard AccessibilityPermission.isTrusted(promptIfNeeded: true),
+              closeFrontWindow(of: runningApp) else {
+            runningApp.hide()
+            return
+        }
+    }
+
+    private func closeFrontWindow(of runningApp: NSRunningApplication) -> Bool {
+        let appElement = AXUIElementCreateApplication(runningApp.processIdentifier)
+        guard let window = preferredWindow(from: appElement),
+              let closeButton = copyAttribute(kAXCloseButtonAttribute, from: window, as: AXUIElement.self) else {
+            return false
+        }
+
+        return AXUIElementPerformAction(closeButton, kAXPressAction as CFString) == .success
     }
 
     private func focusFrontWindow(of runningApp: NSRunningApplication) {
@@ -76,6 +126,12 @@ final class ApplicationSwitcher {
 
     private func isMinimized(_ window: AXUIElement) -> Bool {
         copyAttribute(kAXMinimizedAttribute, from: window, as: Bool.self) ?? false
+    }
+
+    private func runningApplication(bundleIdentifier: String) -> NSRunningApplication? {
+        NSRunningApplication
+            .runningApplications(withBundleIdentifier: bundleIdentifier)
+            .first
     }
 
     private func copyAttribute<T>(_ attribute: String, from element: AXUIElement, as type: T.Type) -> T? {
