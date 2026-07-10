@@ -33,8 +33,8 @@ final class AppState: ObservableObject {
         self.desktopPresenter = desktopPresenter ?? DesktopPresenter(applicationSwitcher: switcher)
         self.launchAtLoginService = launchAtLoginService
         let config = store.load()
-        self.bindings = config.bindings.map(Self.enabledBinding)
-        self.isHotkeysEnabled = true
+        self.bindings = config.bindings
+        self.isHotkeysEnabled = config.hotkeysEnabled
         self.selectedKeyCode = KeyCodes.w
     }
 
@@ -52,8 +52,12 @@ final class AppState: ObservableObject {
     }
 
     func setHotkeysEnabled(_ enabled: Bool) {
-        isHotkeysEnabled = enabled
-        persistAndRegister()
+        guard enabled != isHotkeysEnabled else { return }
+        _ = commit(
+            bindings: bindings,
+            hotkeysEnabled: enabled,
+            successMessage: enabled ? "切换快捷键已启用" : "切换快捷键已暂停"
+        )
     }
 
     func enableLaunchAtLoginIfNeeded() {
@@ -90,17 +94,20 @@ final class AppState: ObservableObject {
             return false
         }
 
-        if let index = bindings.firstIndex(where: { $0.id == binding.id }) {
-            bindings[index] = binding
-        } else if let index = bindings.firstIndex(where: { $0.keyCode == binding.keyCode }) {
-            bindings[index] = binding
+        var updatedBindings = bindings
+        if let index = updatedBindings.firstIndex(where: { $0.id == binding.id }) {
+            updatedBindings[index] = binding
+        } else if let index = updatedBindings.firstIndex(where: { $0.keyCode == binding.keyCode }) {
+            updatedBindings[index] = binding
         } else {
-            bindings.append(binding)
+            updatedBindings.append(binding)
         }
 
-        statusMessage = "已保存绑定"
-        persistAndRegister()
-        return true
+        return commit(
+            bindings: updatedBindings,
+            hotkeysEnabled: isHotkeysEnabled,
+            successMessage: "已保存绑定"
+        )
     }
 
     func bindApplication(at url: URL, to keyCode: UInt32) {
@@ -124,21 +131,24 @@ final class AppState: ObservableObject {
             bundleIdentifier: bundleIdentifier,
             appPath: url.path,
             keyCode: keyCode,
-            modifiers: UInt32(optionKey),
-            isEnabled: true
+            modifiers: UInt32(optionKey)
         )
 
         _ = saveBinding(binding)
     }
 
     func clearBinding(for keyCode: UInt32) {
-        bindings.removeAll { $0.keyCode == keyCode }
-        statusMessage = "已清除绑定"
-        persistAndRegister()
-    }
+        let updatedBindings = bindings.filter { $0.keyCode != keyCode }
+        guard updatedBindings.count != bindings.count else {
+            statusMessage = "当前按键没有绑定"
+            return
+        }
 
-    func appExists(for binding: AppBinding) -> Bool {
-        FileManager.default.fileExists(atPath: binding.appPath)
+        _ = commit(
+            bindings: updatedBindings,
+            hotkeysEnabled: isHotkeysEnabled,
+            successMessage: "已清除绑定"
+        )
     }
 
     func isDesktopShortcutKey(_ keyCode: UInt32?) -> Bool {
@@ -157,15 +167,10 @@ final class AppState: ObservableObject {
         }
     }
 
-    private static func enabledBinding(_ binding: AppBinding) -> AppBinding {
-        var binding = binding
-        binding.isEnabled = true
-        return binding
-    }
-
     private func handleHotKey(_ action: HotKeyAction) {
         switch action {
         case .toggleDesktop:
+            guard isHotkeysEnabled else { return }
             desktopPresenter.toggleDesktop()
         case .showPanel:
             onShowPanel?()
@@ -176,24 +181,34 @@ final class AppState: ObservableObject {
 
     private func openBinding(_ bindingID: UUID) {
         guard isHotkeysEnabled,
-              let binding = bindings.first(where: { $0.id == bindingID && $0.isEnabled }) else {
+              let binding = bindings.first(where: { $0.id == bindingID }) else {
             return
         }
         switcher.openOrActivate(binding)
     }
 
-    private func persistAndRegister() {
+    @discardableResult
+    private func commit(
+        bindings newBindings: [AppBinding],
+        hotkeysEnabled: Bool,
+        successMessage: String?
+    ) -> Bool {
         let config = AppConfig(
             version: AppConfig.currentVersion,
-            hotkeysEnabled: isHotkeysEnabled,
-            bindings: bindings
+            hotkeysEnabled: hotkeysEnabled,
+            bindings: newBindings
         )
 
         do {
             try store.save(config)
+            bindings = newBindings
+            isHotkeysEnabled = hotkeysEnabled
+            statusMessage = successMessage
             registerHotkeys()
+            return true
         } catch {
             statusMessage = "保存配置失败：\(error.localizedDescription)"
+            return false
         }
     }
 }

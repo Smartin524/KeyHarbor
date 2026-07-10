@@ -56,6 +56,8 @@ final class HotKeyManager {
             panelChordMonitor = monitor
         }
 
+        guard enabled else { return }
+
         if let desktopShortcut {
             register(
                 keyCode: desktopShortcut.keyCode,
@@ -64,9 +66,7 @@ final class HotKeyManager {
             )
         }
 
-        guard enabled else { return }
-
-        for binding in bindings where binding.isEnabled {
+        for binding in bindings {
             if let desktopShortcut,
                binding.keyCode == desktopShortcut.keyCode,
                binding.modifiers == desktopShortcut.modifiers {

@@ -210,7 +210,6 @@ private struct KeyCapView: View {
             if let binding {
                 AppIconView(path: binding.appPath)
                     .frame(width: iconSize, height: iconSize)
-                    .opacity(binding.isEnabled ? 1 : 0.45)
             } else {
                 Text(key.label)
                     .font(.system(size: keyLabelSize, weight: .medium, design: .rounded))

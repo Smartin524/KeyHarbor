@@ -4,12 +4,20 @@ import Foundation
 final class DesktopPresenter {
     private let finderBundleIdentifier = "com.apple.finder"
     private let finderURL = URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app")
+    private let rapidToggleInterval: TimeInterval = 0.35
     private let applicationSwitcher: ApplicationSwitcher
     private var lastFocusedApplication: NSRunningApplication?
+    private var hiddenApplications: [NSRunningApplication] = []
+    private var pendingShowDesktopWorkItem: DispatchWorkItem?
+    private var desktopRequestedAt: Date?
     private var isShowingDesktop = false
 
     init(applicationSwitcher: ApplicationSwitcher = ApplicationSwitcher()) {
         self.applicationSwitcher = applicationSwitcher
+    }
+
+    deinit {
+        pendingShowDesktopWorkItem?.cancel()
     }
 
     func toggleDesktop() {
@@ -22,26 +30,29 @@ final class DesktopPresenter {
     }
 
     private var shouldRestorePreviousApplication: Bool {
-        guard isShowingDesktop,
-              let lastFocusedApplication,
-              !lastFocusedApplication.isTerminated else {
-            return false
+        guard isShowingDesktop else { return false }
+
+        if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == finderBundleIdentifier {
+            return true
         }
 
-        return NSWorkspace.shared.frontmostApplication?.bundleIdentifier == finderBundleIdentifier
+        guard restoreTarget != nil, let desktopRequestedAt else { return false }
+        return Date().timeIntervalSince(desktopRequestedAt) <= rapidToggleInterval
     }
 
     private func restorePreviousApplication() {
-        guard let app = lastFocusedApplication, !app.isTerminated else {
-            isShowingDesktop = false
-            lastFocusedApplication = nil
-            self.showDesktop()
-            return
+        pendingShowDesktopWorkItem?.cancel()
+        let app = restoreTarget
+        restoreHiddenApplications()
+        resetDesktopState()
+        if let app {
+            applicationSwitcher.activate(app)
         }
+    }
 
-        isShowingDesktop = false
-        lastFocusedApplication = nil
-        applicationSwitcher.activate(app)
+    private var restoreTarget: NSRunningApplication? {
+        guard let lastFocusedApplication, !lastFocusedApplication.isTerminated else { return nil }
+        return lastFocusedApplication
     }
 
     private func activateFinder() {
@@ -63,8 +74,26 @@ final class DesktopPresenter {
     }
 
     private func hideVisibleApplications() {
-        for app in NSWorkspace.shared.runningApplications where shouldHide(app) {
+        let visibleApplications = NSWorkspace.shared.runningApplications.filter {
+            shouldHide($0) && !$0.isHidden
+        }
+
+        for app in visibleApplications {
+            rememberHiddenApplication(app)
             app.hide()
+        }
+    }
+
+    private func rememberHiddenApplication(_ app: NSRunningApplication) {
+        guard !hiddenApplications.contains(where: { $0.processIdentifier == app.processIdentifier }) else {
+            return
+        }
+        hiddenApplications.append(app)
+    }
+
+    private func restoreHiddenApplications() {
+        for app in hiddenApplications where !app.isTerminated {
+            app.unhide()
         }
     }
 
@@ -74,15 +103,24 @@ final class DesktopPresenter {
     }
 
     private func showDesktop() {
+        pendingShowDesktopWorkItem?.cancel()
+        if !isShowingDesktop {
+            hiddenApplications.removeAll()
+        }
+
         lastFocusedApplication = frontmostRestorableApplication()
         isShowingDesktop = true
+        desktopRequestedAt = Date()
         hideVisibleApplications()
         activateFinder()
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { [weak self] in
+        let workItem = DispatchWorkItem { [weak self] in
+            guard self?.isShowingDesktop == true else { return }
             self?.hideVisibleApplications()
             self?.activateFinder()
         }
+        pendingShowDesktopWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12, execute: workItem)
     }
 
     private func frontmostRestorableApplication() -> NSRunningApplication? {
@@ -92,5 +130,14 @@ final class DesktopPresenter {
         }
 
         return app
+    }
+
+    private func resetDesktopState() {
+        pendingShowDesktopWorkItem?.cancel()
+        pendingShowDesktopWorkItem = nil
+        desktopRequestedAt = nil
+        lastFocusedApplication = nil
+        hiddenApplications.removeAll()
+        isShowingDesktop = false
     }
 }

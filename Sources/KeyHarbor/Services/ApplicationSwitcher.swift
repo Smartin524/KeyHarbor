@@ -2,10 +2,16 @@ import AppKit
 import ApplicationServices
 
 final class ApplicationSwitcher {
-    private let activateRetryDelays: [TimeInterval] = [0.15, 0.45, 0.90, 1.50]
-    private let focusRetryDelays: [TimeInterval] = [0.20, 0.55, 1.00, 1.70]
+    private let focusRetryDelays: [TimeInterval] = [0.08, 0.24, 0.50]
+    private var requestGeneration = 0
+    private var pendingFocusWorkItems: [DispatchWorkItem] = []
+
+    deinit {
+        cancelPendingFocusWorkItems()
+    }
 
     func openOrActivate(_ binding: AppBinding) {
+        let generation = beginRequest()
         let url = URL(fileURLWithPath: binding.appPath)
         guard FileManager.default.fileExists(atPath: url.path) else {
             NSSound.beep()
@@ -18,64 +24,82 @@ final class ApplicationSwitcher {
             return
         }
 
-        guard openApplication(at: url) else {
-            NSSound.beep()
-            return
-        }
-
-        if let runningApp = runningApplication(bundleIdentifier: binding.bundleIdentifier) {
-            activate(runningApp)
-        } else {
-            retryActivate(bundleIdentifier: binding.bundleIdentifier)
-        }
+        openApplication(
+            at: url,
+            bundleIdentifier: binding.bundleIdentifier,
+            generation: generation
+        )
     }
 
     func activate(_ runningApp: NSRunningApplication) {
+        let generation = beginRequest()
+        activate(runningApp, generation: generation)
+    }
+
+    private func activate(_ runningApp: NSRunningApplication, generation: Int) {
+        guard isCurrentRequest(generation), !runningApp.isTerminated else { return }
         runningApp.unhide()
         runningApp.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
-        retryFocusFrontWindow(of: runningApp)
+        scheduleFocusRetries(for: runningApp, generation: generation)
     }
 
-    private func openApplication(at url: URL) -> Bool {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = [url.path]
+    private func openApplication(
+        at url: URL,
+        bundleIdentifier: String,
+        generation: Int
+    ) {
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+        NSWorkspace.shared.openApplication(at: url, configuration: configuration) { [weak self] app, error in
+            DispatchQueue.main.async {
+                guard let self, self.isCurrentRequest(generation) else { return }
 
-        do {
-            try process.run()
-            return true
-        } catch {
-            return false
-        }
-    }
-
-    private func retryActivate(bundleIdentifier: String) {
-        for delay in activateRetryDelays {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-                guard let self,
-                      let runningApp = self.runningApplication(bundleIdentifier: bundleIdentifier) else {
+                guard error == nil,
+                      let runningApp = app ?? self.runningApplication(bundleIdentifier: bundleIdentifier) else {
+                    NSSound.beep()
                     return
                 }
 
-                self.activate(runningApp)
+                self.activate(runningApp, generation: generation)
             }
         }
     }
 
-    private func retryFocusFrontWindow(of runningApp: NSRunningApplication) {
+    private func scheduleFocusRetries(for runningApp: NSRunningApplication, generation: Int) {
         guard AccessibilityPermission.isTrusted(promptIfNeeded: true) else {
             return
         }
 
         for delay in focusRetryDelays {
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self, weak runningApp] in
-                guard let self, let runningApp, !runningApp.isTerminated else {
+            let workItem = DispatchWorkItem { [weak self, weak runningApp] in
+                guard let self,
+                      let runningApp,
+                      self.isCurrentRequest(generation),
+                      !runningApp.isTerminated,
+                      runningApp.isActive else {
                     return
                 }
 
                 self.focusFrontWindow(of: runningApp)
             }
+            pendingFocusWorkItems.append(workItem)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
         }
+    }
+
+    private func beginRequest() -> Int {
+        cancelPendingFocusWorkItems()
+        requestGeneration &+= 1
+        return requestGeneration
+    }
+
+    private func isCurrentRequest(_ generation: Int) -> Bool {
+        generation == requestGeneration
+    }
+
+    private func cancelPendingFocusWorkItems() {
+        pendingFocusWorkItems.forEach { $0.cancel() }
+        pendingFocusWorkItems.removeAll()
     }
 
     private func closeOrHide(_ runningApp: NSRunningApplication) {

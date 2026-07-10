@@ -4,12 +4,14 @@ final class ConfigStore {
     private let fileManager: FileManager
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
+    private let customConfigURL: URL?
 
-    init(fileManager: FileManager = .default) {
+    init(fileManager: FileManager = .default, configURL: URL? = nil) {
         self.fileManager = fileManager
         self.encoder = JSONEncoder()
         self.encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         self.decoder = JSONDecoder()
+        self.customConfigURL = configURL
     }
 
     func load() -> AppConfig {
@@ -33,7 +35,10 @@ final class ConfigStore {
     }
 
     private var configURL: URL {
-        applicationSupportDirectory
+        if let customConfigURL {
+            return customConfigURL
+        }
+        return applicationSupportDirectory
             .appendingPathComponent("KeyHarbor", isDirectory: true)
             .appendingPathComponent("config.json")
     }

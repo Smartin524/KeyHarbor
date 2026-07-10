@@ -8,7 +8,6 @@ struct AppBinding: Identifiable, Codable, Equatable {
     var appPath: String
     var keyCode: UInt32
     var modifiers: UInt32
-    var isEnabled: Bool
 
     init(
         id: UUID = UUID(),
@@ -16,8 +15,7 @@ struct AppBinding: Identifiable, Codable, Equatable {
         bundleIdentifier: String,
         appPath: String,
         keyCode: UInt32,
-        modifiers: UInt32 = UInt32(optionKey),
-        isEnabled: Bool = true
+        modifiers: UInt32 = UInt32(optionKey)
     ) {
         self.id = id
         self.displayName = displayName
@@ -25,7 +23,6 @@ struct AppBinding: Identifiable, Codable, Equatable {
         self.appPath = appPath
         self.keyCode = keyCode
         self.modifiers = modifiers
-        self.isEnabled = isEnabled
     }
 }
 

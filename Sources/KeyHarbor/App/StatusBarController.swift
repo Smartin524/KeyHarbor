@@ -71,7 +71,7 @@ final class StatusBarController {
     }
 
     private func updateEnabledItem() {
-        enabledItem.title = appState.isHotkeysEnabled ? "暂停快捷键" : "启用快捷键"
+        enabledItem.title = appState.isHotkeysEnabled ? "暂停切换快捷键" : "启用切换快捷键"
     }
 
     @objc private func openSettings() {
