@@ -9,7 +9,13 @@ struct KeyboardSettingsView: View {
     var body: some View {
         VStack(spacing: 14) {
             KeyboardView(appState: appState)
-            CompactActionBar(appState: appState)
+
+            GeometryReader { geometry in
+                CompactActionBar(appState: appState)
+                    .frame(width: KeyboardSizing.contentWidth(for: geometry.size.width))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
+            .frame(height: 48)
         }
         .padding(.top, 24)
         .padding(.horizontal, 24)
@@ -19,13 +25,28 @@ struct KeyboardSettingsView: View {
     }
 }
 
+private enum KeyboardSizing {
+    static func unit(for width: CGFloat) -> CGFloat {
+        let available = max(width, 320)
+        return min(50, floor(available / CGFloat(KeyboardLayout.totalEffectiveWidth)))
+    }
+
+    static func spacing(for unit: CGFloat) -> CGFloat {
+        unit * CGFloat(KeyboardLayout.gapUnit)
+    }
+
+    static func contentWidth(for availableWidth: CGFloat) -> CGFloat {
+        unit(for: availableWidth) * CGFloat(KeyboardLayout.totalEffectiveWidth)
+    }
+}
+
 private struct KeyboardView: View {
     @ObservedObject var appState: AppState
 
     var body: some View {
         GeometryReader { geometry in
-            let unit = keyUnit(for: geometry.size.width)
-            let spacing = keySpacing(for: unit)
+            let unit = KeyboardSizing.unit(for: geometry.size.width)
+            let spacing = KeyboardSizing.spacing(for: unit)
 
             VStack(spacing: spacing) {
                 ForEach(Array(KeyboardLayout.rows.enumerated()), id: \.offset) { _, row in
@@ -43,19 +64,10 @@ private struct KeyboardView: View {
                     appState: appState
                 )
             }
-            .frame(width: unit * KeyboardLayout.totalEffectiveWidth)
+            .frame(width: KeyboardSizing.contentWidth(for: geometry.size.width))
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
         .frame(minHeight: 340)
-    }
-
-    private func keyUnit(for width: CGFloat) -> CGFloat {
-        let available = max(width, 320)
-        return min(50, floor(available / CGFloat(KeyboardLayout.totalEffectiveWidth)))
-    }
-
-    private func keySpacing(for unit: CGFloat) -> CGFloat {
-        unit * CGFloat(KeyboardLayout.gapUnit)
     }
 }
 
