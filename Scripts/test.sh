@@ -15,7 +15,6 @@ swiftc -warnings-as-errors -target "$(uname -m)-apple-macosx13.0" \
     Sources/KeyHarbor/Services/DesktopPresenter.swift \
     Sources/KeyHarbor/Services/HotKeyManager.swift \
     Sources/KeyHarbor/Services/LaunchAtLoginService.swift \
-    Sources/KeyHarbor/Services/ModifierChordMonitor.swift \
     Tests/ConfigStoreTests.swift \
     -o "$TEST_BINARY"
 

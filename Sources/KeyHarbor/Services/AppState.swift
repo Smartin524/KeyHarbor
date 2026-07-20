@@ -14,7 +14,10 @@ final class AppState: ObservableObject {
     private let switcher: ApplicationSwitcher
     private let desktopPresenter: DesktopPresenter
     private let launchAtLoginService: LaunchAtLoginService
-    private let panelChord = ModifierChord(flags: [.option, .command])
+    private let panelShortcut = HotKeyShortcut(
+        keyCode: KeyCodes.returnKey,
+        modifiers: UInt32(optionKey) | UInt32(cmdKey)
+    )
     private let desktopShortcut = HotKeyShortcut(keyCode: KeyCodes.space, modifiers: UInt32(optionKey))
     private lazy var hotKeyManager = HotKeyManager { [weak self] action in
         DispatchQueue.main.async {
@@ -42,7 +45,7 @@ final class AppState: ObservableObject {
         hotKeyManager.register(
             bindings: bindings,
             enabled: isHotkeysEnabled,
-            panelChord: panelChord,
+            panelShortcut: panelShortcut,
             desktopShortcut: desktopShortcut
         )
     }

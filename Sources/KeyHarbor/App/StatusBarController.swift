@@ -36,9 +36,9 @@ final class StatusBarController {
         let menu = NSMenu()
 
         let settingsItem = NSMenuItem(
-            title: "打开键盘设置",
+            title: "打开键盘设置（⌥⌘↩）",
             action: #selector(openSettings),
-            keyEquivalent: ","
+            keyEquivalent: ""
         )
         settingsItem.target = self
         menu.addItem(settingsItem)

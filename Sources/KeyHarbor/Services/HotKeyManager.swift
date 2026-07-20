@@ -26,7 +26,6 @@ final class HotKeyManager {
     private var nextHotKeyID: UInt32 = 1
     private let signature = HotKeyManager.fourCharacterCode("KHBR")
     private let handler: Handler
-    private var panelChordMonitor: ModifierChordMonitor?
 
     init(handler: @escaping Handler) {
         self.handler = handler
@@ -43,17 +42,17 @@ final class HotKeyManager {
     func register(
         bindings: [AppBinding],
         enabled: Bool,
-        panelChord: ModifierChord?,
+        panelShortcut: HotKeyShortcut?,
         desktopShortcut: HotKeyShortcut?
     ) {
         unregisterAll()
 
-        if let panelChord {
-            let monitor = ModifierChordMonitor(chord: panelChord) { [weak self] in
-                self?.handler(.showPanel)
-            }
-            monitor.start()
-            panelChordMonitor = monitor
+        if let panelShortcut {
+            register(
+                keyCode: panelShortcut.keyCode,
+                modifiers: panelShortcut.modifiers,
+                action: .showPanel
+            )
         }
 
         guard enabled else { return }
@@ -84,8 +83,6 @@ final class HotKeyManager {
         for hotKey in registeredHotKeys.values {
             UnregisterEventHotKey(hotKey.reference)
         }
-        panelChordMonitor?.stop()
-        panelChordMonitor = nil
         registeredHotKeys.removeAll()
         nextHotKeyID = 1
     }
