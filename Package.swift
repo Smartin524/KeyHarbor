@@ -2,17 +2,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "KeyHarbor",
+    name: "keyharbor",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "KeyHarbor", targets: ["KeyHarbor"])
+        .executable(name: "keyharbor", targets: ["keyharbor"])
     ],
     targets: [
         .executableTarget(
-            name: "KeyHarbor",
-            path: "Sources/KeyHarbor"
+            name: "keyharbor",
+            path: "Sources/keyharbor"
         )
     ]
 )

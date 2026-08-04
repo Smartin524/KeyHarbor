@@ -8,11 +8,10 @@ TARGET_APP="/Applications/$APP_NAME.app"
 
 bash "$ROOT_DIR/Scripts/package_app.sh" >/dev/null
 
-if pgrep -x KeyHarbor >/dev/null 2>&1; then
-    pkill -x KeyHarbor || true
+if pgrep -x keyharbor >/dev/null 2>&1; then
+    pkill -x keyharbor || true
 fi
 
-rm -rf "/Applications/KeyHarbor.app"
 rm -rf "$TARGET_APP"
 cp -R "$SOURCE_APP" "$TARGET_APP"
 

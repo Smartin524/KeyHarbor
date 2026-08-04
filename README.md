@@ -1,6 +1,6 @@
 # 快捷虾
 
-快捷虾是一个原生 macOS 菜单栏快捷切换工具，工程名为 KeyHarbor。默认快捷键：
+快捷虾是一个原生 macOS 菜单栏快捷切换工具，工程名为 keyharbor。默认快捷键：
 
 - `Option + W`：打开或切到 WeChat
 - `Option + C`：打开或切到 Codex

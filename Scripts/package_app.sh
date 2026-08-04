@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP_NAME="快捷虾"
-EXECUTABLE_NAME="KeyHarbor"
+EXECUTABLE_NAME="keyharbor"
 APP_DIR="$ROOT_DIR/dist/$APP_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
@@ -30,7 +30,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
     <key>CFBundleDisplayName</key>
     <string>快捷虾</string>
     <key>CFBundleExecutable</key>
-    <string>KeyHarbor</string>
+    <string>keyharbor</string>
     <key>CFBundleIdentifier</key>
     <string>com.smartin.keyharbor</string>
     <key>CFBundleIconFile</key>

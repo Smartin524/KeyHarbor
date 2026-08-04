@@ -103,7 +103,7 @@ final class HotKeyManager {
         )
 
         guard status == noErr, let hotKeyReference else {
-            NSLog("KeyHarbor failed to register hotkey action=%@ keyCode=%u modifiers=%u status=%d", String(describing: action), keyCode, modifiers, status)
+            NSLog("keyharbor failed to register hotkey action=%@ keyCode=%u modifiers=%u status=%d", String(describing: action), keyCode, modifiers, status)
             return
         }
 

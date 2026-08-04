@@ -39,7 +39,7 @@ final class ConfigStore {
             return customConfigURL
         }
         return applicationSupportDirectory
-            .appendingPathComponent("KeyHarbor", isDirectory: true)
+            .appendingPathComponent("keyharbor", isDirectory: true)
             .appendingPathComponent("config.json")
     }
 

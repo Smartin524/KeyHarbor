@@ -6,15 +6,15 @@ TEST_BINARY="$ROOT_DIR/.build/ConfigStoreTests"
 
 cd "$ROOT_DIR"
 swiftc -warnings-as-errors -target "$(uname -m)-apple-macosx13.0" \
-    Sources/KeyHarbor/Models/AppBinding.swift \
-    Sources/KeyHarbor/Models/KeyboardKey.swift \
-    Sources/KeyHarbor/Services/AccessibilityPermission.swift \
-    Sources/KeyHarbor/Services/AppState.swift \
-    Sources/KeyHarbor/Services/ApplicationSwitcher.swift \
-    Sources/KeyHarbor/Services/ConfigStore.swift \
-    Sources/KeyHarbor/Services/DesktopPresenter.swift \
-    Sources/KeyHarbor/Services/HotKeyManager.swift \
-    Sources/KeyHarbor/Services/LaunchAtLoginService.swift \
+    Sources/keyharbor/Models/AppBinding.swift \
+    Sources/keyharbor/Models/KeyboardKey.swift \
+    Sources/keyharbor/Services/AccessibilityPermission.swift \
+    Sources/keyharbor/Services/AppState.swift \
+    Sources/keyharbor/Services/ApplicationSwitcher.swift \
+    Sources/keyharbor/Services/ConfigStore.swift \
+    Sources/keyharbor/Services/DesktopPresenter.swift \
+    Sources/keyharbor/Services/HotKeyManager.swift \
+    Sources/keyharbor/Services/LaunchAtLoginService.swift \
     Tests/ConfigStoreTests.swift \
     -o "$TEST_BINARY"
 
