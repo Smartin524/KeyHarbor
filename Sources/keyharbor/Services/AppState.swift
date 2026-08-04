@@ -16,7 +16,7 @@ final class AppState: ObservableObject {
     private let launchAtLoginService: LaunchAtLoginService
     private let panelShortcut = HotKeyShortcut(
         keyCode: KeyCodes.z,
-        modifiers: UInt32(optionKey)
+        modifiers: UInt32(optionKey) | UInt32(shiftKey)
     )
     private let desktopShortcut = HotKeyShortcut(keyCode: KeyCodes.space, modifiers: UInt32(optionKey))
     private lazy var hotKeyManager = HotKeyManager { [weak self] action in
@@ -89,7 +89,7 @@ final class AppState: ObservableObject {
 
     func saveBinding(_ binding: AppBinding) -> Bool {
         if isPanelShortcut(keyCode: binding.keyCode, modifiers: binding.modifiers) {
-            statusMessage = "⌥Z 已用于打开快捷虾面板"
+            statusMessage = "⌥⇧Z 已用于打开快捷虾面板"
             return false
         }
 
@@ -122,7 +122,7 @@ final class AppState: ObservableObject {
     func bindApplication(at url: URL, to keyCode: UInt32) {
         guard !isReservedShortcutKey(keyCode) else {
             statusMessage = isPanelShortcutKey(keyCode)
-                ? "⌥Z 已用于打开快捷虾面板"
+                ? "⌥⇧Z 已用于打开快捷虾面板"
                 : "⌥Space 已用于显示/返回桌面"
             return
         }
@@ -172,6 +172,10 @@ final class AppState: ObservableObject {
 
     func isReservedShortcutKey(_ keyCode: UInt32?) -> Bool {
         isPanelShortcutKey(keyCode) || isDesktopShortcutKey(keyCode)
+    }
+
+    func shortcutModifiers(for keyCode: UInt32) -> UInt32 {
+        isPanelShortcutKey(keyCode) ? panelShortcut.modifiers : UInt32(optionKey)
     }
 
     private func isPanelShortcut(keyCode: UInt32, modifiers: UInt32) -> Bool {

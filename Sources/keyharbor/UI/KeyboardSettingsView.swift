@@ -394,7 +394,10 @@ private struct CompactActionBar: View {
         guard let keyCode = appState.selectedKeyCode else {
             return "未选"
         }
-        return ModifierFormatter.shortcutLabel(keyCode: keyCode, modifiers: UInt32(optionKey))
+        return ModifierFormatter.shortcutLabel(
+            keyCode: keyCode,
+            modifiers: appState.shortcutModifiers(for: keyCode)
+        )
     }
 
     private var selectedBinding: AppBinding? {
