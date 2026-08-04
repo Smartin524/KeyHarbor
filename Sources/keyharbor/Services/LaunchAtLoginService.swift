@@ -2,6 +2,22 @@ import Foundation
 import ServiceManagement
 
 final class LaunchAtLoginService {
+    private let appURL: URL
+
+    init(appURL: URL = Bundle.main.bundleURL) {
+        self.appURL = appURL
+    }
+
+    var canRegisterCurrentApp: Bool {
+        let standardizedAppURL = appURL.standardizedFileURL
+        guard standardizedAppURL.pathExtension == "app" else { return false }
+
+        let applicationsPath = URL(fileURLWithPath: "/Applications", isDirectory: true)
+            .standardizedFileURL
+            .path
+        return standardizedAppURL.path.hasPrefix(applicationsPath + "/")
+    }
+
     var isEnabled: Bool {
         SMAppService.mainApp.status == .enabled
     }

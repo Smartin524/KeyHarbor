@@ -64,6 +64,7 @@ final class AppState: ObservableObject {
     }
 
     func enableLaunchAtLoginIfNeeded() {
+        guard launchAtLoginService.canRegisterCurrentApp else { return }
         guard !launchAtLoginService.isEnabled else { return }
 
         do {
