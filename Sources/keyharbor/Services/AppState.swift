@@ -15,8 +15,8 @@ final class AppState: ObservableObject {
     private let desktopPresenter: DesktopPresenter
     private let launchAtLoginService: LaunchAtLoginService
     private let panelShortcut = HotKeyShortcut(
-        keyCode: KeyCodes.returnKey,
-        modifiers: UInt32(optionKey) | UInt32(cmdKey)
+        keyCode: KeyCodes.z,
+        modifiers: UInt32(optionKey)
     )
     private let desktopShortcut = HotKeyShortcut(keyCode: KeyCodes.space, modifiers: UInt32(optionKey))
     private lazy var hotKeyManager = HotKeyManager { [weak self] action in
@@ -78,7 +78,7 @@ final class AppState: ObservableObject {
     }
 
     func binding(for keyCode: UInt32) -> AppBinding? {
-        guard !isDesktopShortcutKey(keyCode) else { return nil }
+        guard !isReservedShortcutKey(keyCode) else { return nil }
         return bindings.first { $0.keyCode == keyCode }
     }
 
@@ -88,6 +88,11 @@ final class AppState: ObservableObject {
     }
 
     func saveBinding(_ binding: AppBinding) -> Bool {
+        if isPanelShortcut(keyCode: binding.keyCode, modifiers: binding.modifiers) {
+            statusMessage = "⌥Z 已用于打开快捷虾面板"
+            return false
+        }
+
         if isDesktopShortcut(keyCode: binding.keyCode, modifiers: binding.modifiers) {
             statusMessage = "⌥Space 已用于显示/返回桌面"
             return false
@@ -115,8 +120,10 @@ final class AppState: ObservableObject {
     }
 
     func bindApplication(at url: URL, to keyCode: UInt32) {
-        guard !isDesktopShortcutKey(keyCode) else {
-            statusMessage = "⌥Space 已用于显示/返回桌面"
+        guard !isReservedShortcutKey(keyCode) else {
+            statusMessage = isPanelShortcutKey(keyCode)
+                ? "⌥Z 已用于打开快捷虾面板"
+                : "⌥Space 已用于显示/返回桌面"
             return
         }
 
@@ -157,6 +164,18 @@ final class AppState: ObservableObject {
 
     func isDesktopShortcutKey(_ keyCode: UInt32?) -> Bool {
         keyCode == desktopShortcut.keyCode
+    }
+
+    func isPanelShortcutKey(_ keyCode: UInt32?) -> Bool {
+        keyCode == panelShortcut.keyCode
+    }
+
+    func isReservedShortcutKey(_ keyCode: UInt32?) -> Bool {
+        isPanelShortcutKey(keyCode) || isDesktopShortcutKey(keyCode)
+    }
+
+    private func isPanelShortcut(keyCode: UInt32, modifiers: UInt32) -> Bool {
+        keyCode == panelShortcut.keyCode && modifiers == panelShortcut.modifiers
     }
 
     private func isDesktopShortcut(keyCode: UInt32, modifiers: UInt32) -> Bool {

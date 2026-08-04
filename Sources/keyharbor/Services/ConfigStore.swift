@@ -21,7 +21,12 @@ final class ConfigStore {
 
         do {
             let data = try Data(contentsOf: configURL)
-            return try decoder.decode(AppConfig.self, from: data)
+            let decoded = try decoder.decode(AppConfig.self, from: data)
+            let migrated = decoded.migratedToCurrentVersion()
+            if migrated != decoded {
+                try? save(migrated)
+            }
+            return migrated
         } catch {
             return .defaults()
         }

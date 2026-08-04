@@ -16,7 +16,8 @@ enum ConfigStoreTests {
     static func main() throws {
         try testRoundTripPreservesPausedStateAndBindings()
         try testLegacyBindingEnabledFieldDoesNotBreakDecoding()
-        print("ConfigStoreTests: 2 passed")
+        try testVersionOneConfigAddsNewDefaultsWithoutOverwritingCustomBindings()
+        print("ConfigStoreTests: 3 passed")
     }
 
     private static func testRoundTripPreservesPausedStateAndBindings() throws {
@@ -74,6 +75,58 @@ enum ConfigStoreTests {
         try expect(
             config.bindings[0].bundleIdentifier == "com.example.legacy",
             "legacy binding contents changed during decoding"
+        )
+    }
+
+    private static func testVersionOneConfigAddsNewDefaultsWithoutOverwritingCustomBindings() throws {
+        let customMailBinding = AppBinding(
+            displayName: "Custom Mail",
+            bundleIdentifier: "com.example.custom-mail",
+            appPath: "/Applications/Custom Mail.app",
+            keyCode: KeyCodes.e
+        )
+        let legacyCodexBinding = AppBinding(
+            displayName: "Codex",
+            bundleIdentifier: "com.openai.codex",
+            appPath: "/Applications/Codex.app",
+            keyCode: KeyCodes.c
+        )
+        let legacy = AppConfig(
+            version: 1,
+            hotkeysEnabled: true,
+            bindings: [customMailBinding, legacyCodexBinding]
+        )
+
+        let migrated = legacy.migratedToCurrentVersion()
+
+        try expect(migrated.version == AppConfig.currentVersion, "config version was not upgraded")
+        try expect(
+            migrated.bindings.contains(customMailBinding),
+            "migration overwrote a custom binding"
+        )
+        try expect(
+            !migrated.bindings.contains { $0.bundleIdentifier == "com.apple.mail" },
+            "migration replaced an occupied default key"
+        )
+        try expect(
+            migrated.bindings.contains {
+                $0.displayName == "ChatGPT" &&
+                $0.appPath == "/Applications/ChatGPT.app" &&
+                $0.keyCode == KeyCodes.c
+            },
+            "Codex binding was not migrated to ChatGPT"
+        )
+        try expect(
+            migrated.bindings.contains {
+                $0.bundleIdentifier == "com.apple.Music" && $0.keyCode == KeyCodes.m
+            },
+            "Music default was not added"
+        )
+        try expect(
+            migrated.bindings.contains {
+                $0.bundleIdentifier == "com.google.Chrome" && $0.keyCode == KeyCodes.b
+            },
+            "Chrome default was not added"
         )
     }
 

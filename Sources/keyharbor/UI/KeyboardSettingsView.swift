@@ -159,7 +159,7 @@ private struct KeyCapButton: View {
                 appState.select(keyCode: keyCode)
 
                 guard clickCount == 2,
-                      !appState.isDesktopShortcutKey(keyCode) else {
+                      !appState.isReservedShortcutKey(keyCode) else {
                     return
                 }
 
@@ -356,7 +356,15 @@ private struct CompactActionBar: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .frame(minWidth: 48, alignment: .leading)
 
-            if appState.isDesktopShortcutKey(appState.selectedKeyCode) {
+            if appState.isPanelShortcutKey(appState.selectedKeyCode) {
+                Image(systemName: "rectangle.on.rectangle")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(Color.accentColor)
+
+                Text("打开面板")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+            } else if appState.isDesktopShortcutKey(appState.selectedKeyCode) {
                 Image(systemName: "desktopcomputer")
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(Color.accentColor)
