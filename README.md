@@ -43,8 +43,8 @@ bash Scripts/install_app.sh
 
 图标源文件在 `Assets/`：
 
-- `AppIcon-light.png`：当前应用图标源图
-- `AppIcon-dark.png`：暗色版备用源图
+- `AppIcon-dark.png`：当前通用应用图标源图，兼顾浅色与暗色桌面
+- `AppIcon-light.png`：保留的亮色版源图
 - `AppIcon.icns`：打包进 `.app` 的 macOS 图标
 
 首版使用本机 ad-hoc 签名，不包含 App Store 发布、notarization 或正式签名流程。

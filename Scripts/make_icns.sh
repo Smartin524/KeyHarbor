@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE_PNG="${1:-$ROOT_DIR/Assets/AppIcon-light.png}"
+SOURCE_PNG="${1:-$ROOT_DIR/Assets/AppIcon-dark.png}"
 OUTPUT_ICNS="${2:-$ROOT_DIR/Assets/AppIcon.icns}"
 ICONSET_DIR="$ROOT_DIR/.build/AppIcon.iconset"
 
