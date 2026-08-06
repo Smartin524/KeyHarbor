@@ -8,6 +8,7 @@ APP_DIR="$ROOT_DIR/dist/$APP_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
 RESOURCES_DIR="$CONTENTS_DIR/Resources"
+SIGNING_IDENTITY="${KEYHARBOR_SIGNING_IDENTITY:--}"
 
 cd "$ROOT_DIR"
 swift build -c release
@@ -56,7 +57,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
 PLIST
 
 if command -v codesign >/dev/null 2>&1; then
-    codesign --force --deep --sign - "$APP_DIR" >/dev/null
+    codesign --force --deep --sign "$SIGNING_IDENTITY" "$APP_DIR" >/dev/null
 fi
 
 echo "$APP_DIR"

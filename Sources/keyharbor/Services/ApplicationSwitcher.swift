@@ -66,7 +66,7 @@ final class ApplicationSwitcher {
     }
 
     private func scheduleFocusRetries(for runningApp: NSRunningApplication, generation: Int) {
-        guard AccessibilityPermission.isTrusted(promptIfNeeded: true) else {
+        guard AccessibilityPermission.isTrusted else {
             return
         }
 
@@ -103,7 +103,7 @@ final class ApplicationSwitcher {
     }
 
     private func closeOrHide(_ runningApp: NSRunningApplication) {
-        guard AccessibilityPermission.isTrusted(promptIfNeeded: true),
+        guard AccessibilityPermission.isTrusted,
               closeFrontWindow(of: runningApp) else {
             runningApp.hide()
             return

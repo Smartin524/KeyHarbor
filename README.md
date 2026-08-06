@@ -66,7 +66,15 @@ bash Scripts/install_app.sh
 
 ### 权限说明
 
-首次切换 App 时，macOS 可能会请求“辅助功能”权限。授权后，快捷虾可以在切换桌面后将目标 App 的窗口抬到最前并聚焦。打开设置面板本身不依赖辅助功能权限。
+打开、切换和隐藏 App 不需要“辅助功能”权限。授权后，快捷虾还可以在切换桌面后将目标窗口抬到最前，并在再次按下快捷键时优先关闭前台窗口。需要授权时，请从菜单栏选择“设置辅助功能权限…”。快捷虾不会在使用快捷键时主动弹出权限提示。
+
+从源码重新构建会改变 ad-hoc 签名的身份，macOS 可能因此要求重新授权。使用稳定的 Developer ID 或 Apple Development 证书签名可以避免这一情况。
+
+如本机已有代码签名证书，可在安装时指定稳定身份：
+
+```bash
+KEYHARBOR_SIGNING_IDENTITY="Apple Development: Your Name" bash Scripts/install_app.sh
+```
 
 如果系统要求确认开机启动，请前往“系统设置 → 通用 → 登录项”允许快捷虾。
 
@@ -139,7 +147,15 @@ The install script builds the app, copies it to `/Applications/快捷虾.app`, a
 
 ### Permissions
 
-macOS may request Accessibility permission the first time KeyHarbor switches to an app. Once granted, KeyHarbor can raise and focus the target window after moving between Spaces. Opening the settings panel does not require Accessibility permission.
+Opening, switching, and hiding apps do not require Accessibility permission. Once granted, KeyHarbor can also raise the target window after moving between Spaces and prioritize closing the front window when a shortcut is pressed again. Choose **Set Up Accessibility Permission…** from the menu bar when you want to grant access. KeyHarbor never opens the permission prompt while handling a shortcut.
+
+Rebuilding from source changes the app's ad-hoc signing identity, so macOS may require permission again. Signing with a stable Developer ID or Apple Development certificate prevents this.
+
+If a code-signing certificate is available, provide its stable identity during installation:
+
+```bash
+KEYHARBOR_SIGNING_IDENTITY="Apple Development: Your Name" bash Scripts/install_app.sh
+```
 
 If macOS asks you to approve launch at login, enable KeyHarbor under **System Settings → General → Login Items**.
 

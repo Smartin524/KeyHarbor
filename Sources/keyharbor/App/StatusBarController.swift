@@ -1,17 +1,19 @@
 import AppKit
 import Combine
 
-final class StatusBarController {
+final class StatusBarController: NSObject, NSMenuDelegate {
     private let statusItem: NSStatusItem
     private let appState: AppState
     private let onOpenSettings: () -> Void
     private let enabledItem = NSMenuItem()
+    private let accessibilityItem = NSMenuItem()
     private var cancellables = Set<AnyCancellable>()
 
     init(appState: AppState, onOpenSettings: @escaping () -> Void) {
         self.appState = appState
         self.onOpenSettings = onOpenSettings
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        super.init()
 
         configureButton()
         configureMenu()
@@ -36,7 +38,7 @@ final class StatusBarController {
         let menu = NSMenu()
 
         let settingsItem = NSMenuItem(
-            title: "打开键盘设置（⌥⌘↩）",
+            title: "打开键盘设置（⌥⇧Z）",
             action: #selector(openSettings),
             keyEquivalent: ""
         )
@@ -46,6 +48,10 @@ final class StatusBarController {
         enabledItem.action = #selector(toggleHotkeys)
         enabledItem.target = self
         menu.addItem(enabledItem)
+
+        accessibilityItem.action = #selector(requestAccessibilityPermission)
+        accessibilityItem.target = self
+        menu.addItem(accessibilityItem)
 
         menu.addItem(.separator())
 
@@ -57,8 +63,10 @@ final class StatusBarController {
         quitItem.target = NSApp
         menu.addItem(quitItem)
 
+        menu.delegate = self
         statusItem.menu = menu
         updateEnabledItem()
+        updateAccessibilityItem()
     }
 
     private func observeState() {
@@ -74,11 +82,28 @@ final class StatusBarController {
         enabledItem.title = appState.isHotkeysEnabled ? "暂停切换快捷键" : "启用切换快捷键"
     }
 
+    private func updateAccessibilityItem() {
+        accessibilityItem.title = AccessibilityPermission.isTrusted
+            ? "辅助功能权限：已授权"
+            : "设置辅助功能权限…"
+        accessibilityItem.state = AccessibilityPermission.isTrusted ? .on : .off
+    }
+
+    func menuWillOpen(_ menu: NSMenu) {
+        updateAccessibilityItem()
+    }
+
     @objc private func openSettings() {
         onOpenSettings()
     }
 
     @objc private func toggleHotkeys() {
         appState.setHotkeysEnabled(!appState.isHotkeysEnabled)
+    }
+
+    @objc private func requestAccessibilityPermission() {
+        guard !AccessibilityPermission.isTrusted else { return }
+        AccessibilityPermission.request()
+        updateAccessibilityItem()
     }
 }

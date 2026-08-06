@@ -2,18 +2,15 @@ import ApplicationServices
 import Foundation
 
 enum AccessibilityPermission {
-    private static var hasRequestedPermission = false
+    static var isTrusted: Bool {
+        AXIsProcessTrusted()
+    }
 
-    static func isTrusted(promptIfNeeded: Bool) -> Bool {
-        if AXIsProcessTrusted() {
-            return true
-        }
-
-        guard promptIfNeeded, !hasRequestedPermission else {
-            return false
-        }
-
-        hasRequestedPermission = true
+    /// Requests Accessibility access only in response to an explicit user action.
+    /// Normal shortcut handling must use `isTrusted` so it never opens a system
+    /// permission prompt on its own.
+    @discardableResult
+    static func request() -> Bool {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         return AXIsProcessTrustedWithOptions(options)
     }
