@@ -2,7 +2,6 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let appState = AppState()
-    private var statusBarController: StatusBarController?
     private var settingsWindowController: SettingsWindowController?
     private var hasStarted = false
 
@@ -18,9 +17,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !hasStarted else { return }
         hasStarted = true
 
-        statusBarController = StatusBarController(appState: appState) { [weak self] in
-            self?.showSettingsWindow()
-        }
         settingsWindowController = SettingsWindowController(appState: appState)
         appState.onShowPanel = { [weak self] in
             self?.toggleSettingsWindow()

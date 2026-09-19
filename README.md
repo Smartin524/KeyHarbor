@@ -19,7 +19,7 @@
 
 ## 中文
 
-快捷虾是一款原生 macOS 菜单栏工具。它把常用 App 绑定到全局快捷键，让你无需寻找窗口、切换桌面或打开程序坞，按一次组合键即可打开或聚焦目标 App。
+快捷虾是一款原生 macOS 全局快捷键工具。它把常用 App 绑定到全局快捷键，让你无需寻找窗口、切换桌面或打开程序坞，按一次组合键即可打开或聚焦目标 App。
 
 ### 功能亮点
 
@@ -27,7 +27,6 @@
 - **可视化快捷键设置**：在键盘界面中直接查看绑定，双击按键即可选择 App。
 - **显示与返回桌面**：同一个快捷键显示桌面，再按一次返回之前的前台 App。
 - **随时唤起面板**：面板快捷键不受“暂停切换”影响，方便随时恢复或调整设置。
-- **菜单栏控制**：快速暂停全部 App 切换快捷键，暂停状态会在重启后保留。
 - **开机启动**：默认尝试注册为 macOS 登录项。
 - **原生轻量**：使用 Swift、SwiftUI 和 AppKit 构建。
 
@@ -62,11 +61,11 @@ cd KeyHarbor
 bash Scripts/install_app.sh
 ```
 
-安装脚本会构建 App、复制到 `/Applications/快捷虾.app` 并启动。之后可从屏幕右上角菜单栏重新打开设置。
+安装脚本会构建 App、复制到 `/Applications/快捷虾.app` 并启动。之后可按 `Option + Shift + Z` 重新打开设置。
 
 ### 权限说明
 
-打开、切换和隐藏 App 不需要“辅助功能”权限。授权后，快捷虾还可以在切换桌面后将目标窗口抬到最前，并在再次按下快捷键时优先关闭前台窗口。需要授权时，请从菜单栏选择“设置辅助功能权限…”。快捷虾不会在使用快捷键时主动弹出权限提示。
+打开、切换和隐藏 App 不需要“辅助功能”权限。授权后，快捷虾还可以在切换桌面后将目标窗口抬到最前，并在再次按下快捷键时优先关闭前台窗口。需要授权时，请在 macOS 的“系统设置 → 隐私与安全性 → 辅助功能”中添加并启用快捷虾。快捷虾不会在使用快捷键时主动弹出权限提示。
 
 从源码重新构建会改变 ad-hoc 签名的身份，macOS 可能因此要求重新授权。使用稳定的 Developer ID 或 Apple Development 证书签名可以避免这一情况。
 
@@ -100,7 +99,7 @@ open dist/快捷虾.app
 
 ## English
 
-KeyHarbor is a native macOS menu bar utility that binds frequently used apps to global keyboard shortcuts. Open or focus an app with one key combination—without hunting for windows, switching Spaces, or reaching for the Dock.
+KeyHarbor is a native macOS global-shortcut utility that binds frequently used apps to keyboard shortcuts. Open or focus an app with one key combination—without hunting for windows, switching Spaces, or reaching for the Dock.
 
 ### Highlights
 
@@ -108,7 +107,6 @@ KeyHarbor is a native macOS menu bar utility that binds frequently used apps to 
 - **Visual shortcut editor**: See bindings on a keyboard layout and double-click a key to select an app.
 - **Desktop toggle**: Show the desktop and return to the previous foreground app with the same shortcut.
 - **Always-available panel**: The panel shortcut remains active while app-switching shortcuts are paused.
-- **Menu bar controls**: Pause all app-switching shortcuts; the paused state persists across restarts.
 - **Launch at login**: Automatically attempts to register as a macOS login item.
 - **Native and lightweight**: Built with Swift, SwiftUI, and AppKit.
 
@@ -143,11 +141,11 @@ cd KeyHarbor
 bash Scripts/install_app.sh
 ```
 
-The install script builds the app, copies it to `/Applications/快捷虾.app`, and launches it. You can reopen the settings panel from the menu bar at any time.
+The install script builds the app, copies it to `/Applications/快捷虾.app`, and launches it. Press `Option + Shift + Z` to reopen the settings panel at any time.
 
 ### Permissions
 
-Opening, switching, and hiding apps do not require Accessibility permission. Once granted, KeyHarbor can also raise the target window after moving between Spaces and prioritize closing the front window when a shortcut is pressed again. Choose **Set Up Accessibility Permission…** from the menu bar when you want to grant access. KeyHarbor never opens the permission prompt while handling a shortcut.
+Opening, switching, and hiding apps do not require Accessibility permission. Once granted, KeyHarbor can also raise the target window after moving between Spaces and prioritize closing the front window when a shortcut is pressed again. To grant access, add and enable KeyHarbor under **System Settings → Privacy & Security → Accessibility**. KeyHarbor never opens the permission prompt while handling a shortcut.
 
 Rebuilding from source changes the app's ad-hoc signing identity, so macOS may require permission again. Signing with a stable Developer ID or Apple Development certificate prevents this.
 

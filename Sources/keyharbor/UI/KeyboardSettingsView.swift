@@ -220,7 +220,7 @@ private struct KeyCapView: View {
     var body: some View {
         VStack(spacing: 2) {
             if let binding {
-                AppIconView(path: binding.appPath)
+                AppIconView(binding: binding)
                     .frame(width: iconSize, height: iconSize)
             } else {
                 Text(key.label)
@@ -292,26 +292,28 @@ private struct KeyCapView: View {
 }
 
 private struct AppIconView: View {
-    let path: String
+    let binding: AppBinding
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Image(nsImage: icon)
             .resizable()
             .scaledToFit()
             .clipShape(RoundedRectangle(cornerRadius: 5))
+            .accessibilityLabel(binding.displayName)
     }
 
     private var icon: NSImage {
-        guard FileManager.default.fileExists(atPath: path) else {
-            return NSImage(systemSymbolName: "app.dashed", accessibilityDescription: "Missing app")
-                ?? NSWorkspace.shared.icon(for: .applicationBundle)
-        }
-        return NSWorkspace.shared.icon(forFile: path)
+        AppIconRenderer.icon(
+            forAppAtPath: binding.appPath,
+            appearanceName: colorScheme == .dark ? .darkAqua : .aqua
+        )
     }
 }
 
 private struct CompactActionBar: View {
     @ObservedObject var appState: AppState
+    @ObservedObject private var deleteButtonHoverState = DeleteButtonHoverState()
 
     var body: some View {
         HStack(spacing: 12) {
@@ -331,13 +333,20 @@ private struct CompactActionBar: View {
                 clearSelectedBinding()
             } label: {
                 Image(systemName: "trash")
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(width: 30, height: 28)
+                    .contentShape(Circle())
             }
+            .buttonStyle(
+                DeleteIconButtonStyle(
+                    isEnabled: selectedBinding != nil,
+                    isHovering: deleteButtonHoverState.isHovering
+                )
+            )
+            .onHover { deleteButtonHoverState.isHovering = $0 }
             .help("清除当前按键绑定")
             .disabled(selectedBinding == nil)
-            .controlSize(.regular)
-            .frame(width: 42, height: 30)
         }
-        .buttonStyle(.bordered)
         .padding(.horizontal, 14)
         .frame(height: 48)
         .background(
@@ -373,14 +382,14 @@ private struct CompactActionBar: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             } else if let selectedBinding {
-                AppIconView(path: selectedBinding.appPath)
+                AppIconView(binding: selectedBinding)
                     .frame(width: 28, height: 28)
 
-                Text("已绑定")
+                Text(selectedBinding.displayName)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false)
+                    .truncationMode(.tail)
             } else {
                 Text("未绑定")
                     .font(.system(size: 12))
@@ -408,6 +417,40 @@ private struct CompactActionBar: View {
     private func clearSelectedBinding() {
         guard let keyCode = appState.selectedKeyCode else { return }
         appState.clearBinding(for: keyCode)
+    }
+}
+
+private final class DeleteButtonHoverState: ObservableObject {
+    @Published var isHovering = false
+}
+
+private struct DeleteIconButtonStyle: ButtonStyle {
+    let isEnabled: Bool
+    let isHovering: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(foregroundColor(isPressed: configuration.isPressed))
+            .background(
+                Circle()
+                    .fill(backgroundColor(isPressed: configuration.isPressed))
+            )
+            .scaleEffect(configuration.isPressed && isEnabled ? 0.94 : 1)
+            .animation(.easeOut(duration: 0.10), value: configuration.isPressed)
+            .animation(.easeOut(duration: 0.12), value: isHovering)
+    }
+
+    private func backgroundColor(isPressed: Bool) -> Color {
+        guard isEnabled else { return .clear }
+        if isPressed { return Color.red.opacity(0.10) }
+        return isHovering ? Color.primary.opacity(0.08) : .clear
+    }
+
+    private func foregroundColor(isPressed: Bool) -> Color {
+        guard isEnabled else {
+            return Color.secondary.opacity(0.28)
+        }
+        return isPressed ? .red : Color.secondary.opacity(0.72)
     }
 }
 
